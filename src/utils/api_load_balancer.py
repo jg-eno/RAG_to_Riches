@@ -2,11 +2,12 @@
 import os
 from dotenv import load_dotenv
 import threading
+import random
 
 class ApiKeyLoadBalancer:
     """Load balancer for API keys using Round Robin technique."""
     
-    def __init__(self, key_prefix="GEMINI_API_KEY", num_keys=4):
+    def __init__(self, key_prefix="GEMINI_API_KEY", num_keys=5):
         """Initialize the load balancer.
         
         Args:
@@ -33,20 +34,42 @@ class ApiKeyLoadBalancer:
         # Thread lock for thread safety
         self.lock = threading.Lock()
         
+        # Track last used key to ensure change
+        self.last_used_key = None
+        
         print(f"API Key Load Balancer initialized with {len(self.api_keys)} keys")
     
     def get_next_key(self):
-        """Get the next API key using Round Robin.
+        """Get the next API key, ensuring it's different from the last used key.
         
         Returns:
             str: The next API key
         """
         with self.lock:
-            # Get the current key
-            key = self.api_keys[self.current_index]
+            # If we only have one key, just return it
+            if len(self.api_keys) == 1:
+                return self.api_keys[0]
             
-            # Move to the next key for the next request
-            self.current_index = (self.current_index + 1) % len(self.api_keys)
+            # If we have multiple keys, ensure we don't use the same key twice in a row
+            if len(self.api_keys) > 1:
+                # Get available keys (excluding the last used key)
+                available_keys = [key for key in self.api_keys if key != self.last_used_key]
+                
+                # If somehow all keys were used (shouldn't happen with our implementation)
+                # or this is the first request, use standard round-robin
+                if not available_keys:
+                    key = self.api_keys[self.current_index]
+                    self.current_index = (self.current_index + 1) % len(self.api_keys)
+                else:
+                    # Randomly select from available keys for better distribution
+                    key = random.choice(available_keys)
+                    
+                    # Update the index to match the selected key for next round-robin continuation
+                    self.current_index = self.api_keys.index(key)
+                    self.current_index = (self.current_index + 1) % len(self.api_keys)
+            
+            # Remember this key as the last used
+            self.last_used_key = key
             
             return key
 

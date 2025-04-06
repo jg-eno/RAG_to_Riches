@@ -76,10 +76,15 @@ def query_document(question, doc_path=None):
     print(f"Searching for: {question} in document: {doc_path}")
     results = db.similarity_search_with_relevance_scores(
         question, 
-        k=3,  
-        score_threshold=0.2
+        k=3
     )
 
+    # Handle negative relevance scores by using absolute values
+    if results and all(score < 0 for _, score in results):
+        print("Detected negative relevance scores, using absolute values for comparison")
+        # Sort by absolute value of relevance score (closest to 0 is most relevant for negative scores)
+        results.sort(key=lambda x: abs(x[1]))
+        
     if len(results) == 0:
         print("No results found in the document")
         return "I couldn't find any relevant information in the document to answer your question."
