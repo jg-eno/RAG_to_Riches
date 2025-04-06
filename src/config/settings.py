@@ -8,7 +8,7 @@ load_dotenv()
 
 # API and model configuration
 API_KEY = get_api_key  # Now a function that returns the next API key
-GEMINI_MODEL = "gemini-2.5-pro-preview-03-25"
+GEMINI_MODEL = "gemini-2.0-flash-thinking-exp-01-21"
 EMBEDDING_MODEL = "models/text-embedding-004"
 
 # Default document and database paths

@@ -51,6 +51,7 @@ def create_chat_interface():
                 <p style="font-size: 1.1rem; color: #94a3b8; max-width: 800px; margin: 0 auto; line-height: 1.6;">
                     Single-document chat: Interaction with an individual document. Activity given by Ailaysa
                 </p>
+                <p>By J Glen Enosh</p>
             </div>
         </div>
     """)

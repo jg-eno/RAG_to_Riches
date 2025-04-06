@@ -10,6 +10,7 @@ A professional, futuristic document analysis and Q&A system that allows users to
 - **Custom Document Upload**: Upload your own PDF documents and query them instantly
 - **Optimized Performance**: Caching mechanisms and optimized retrieval parameters for faster responses
 - **API Key Load Balancing**: Round Robin load balancing across multiple API keys to prevent rate limiting
+- **LLM Fallback Mechanism**: Automatic fallback to Google Gemini when Groq encounters issues
 - **Professional UI**: Modern dark-themed interface with responsive design and futuristic elements
 - **Structured Responses**: Well-formatted answers using tables, lists, and other Markdown elements
 - **Example Queries**: Pre-defined example queries to help users get started
@@ -19,7 +20,8 @@ A professional, futuristic document analysis and Q&A system that allows users to
 - **Backend**:
   - Python 3.10+
   - LangChain for document processing and RAG pipelining
-  - Google Gemini 2.5 Pro for AI responses
+  - Groq with Llama 3.3 70B for primary AI responses
+  - Google Gemini for fallback AI responses
   - Google text-embedding-004 model for document embeddings
   - ChromaDB for vector storage
   - dotenv for environment variable management
@@ -42,7 +44,8 @@ A professional, futuristic document analysis and Q&A system that allows users to
 
 - Python 3.12 or higher
 - pip (Python package manager)
-- Google Gemini API key(s)
+- Groq API key (for primary LLM)
+- Google Gemini API key(s) (for fallback when Groq encounters issues)
 
 ### Installation
 
@@ -65,10 +68,12 @@ A professional, futuristic document analysis and Q&A system that allows users to
 
 4. Create a `.env` file in the root directory with your API keys and document path:
    ```
+   GROQ_API_KEY = 'your_groq_api_key'
    GEMINI_API_KEY_1 = 'your_api_key_1'
    GEMINI_API_KEY_2 = 'your_api_key_2'
    GEMINI_API_KEY_3 = 'your_api_key_3'
    GEMINI_API_KEY_4 = 'your_api_key_4'
+   GEMINI_API_KEY_5 = 'your_api_key_5'
    DOC_PATH = 'path_to_your_default_document.pdf'
    CHROMA_PATH = 'chroma'
    ```
@@ -143,8 +148,16 @@ The system includes several optimizations to improve response time and user expe
    - Relevance score thresholding (0.2) for better results
 
 3. **API Key Management**:
-   - Round Robin load balancing across multiple API keys
+   - Round Robin load balancing across multiple Google Gemini API keys
    - Thread-safe implementation for concurrent requests
+   - Automatic fallback to Google Gemini LLM when Groq encounters issues
+
+4. **LLM Fallback Mechanism**:
+   - Primary use of Groq's Llama 3.3 70B model for high-quality responses
+   - Automatic detection of Groq API errors
+   - Seamless transition to Google Gemini as a fallback
+   - Comprehensive error handling for both primary and fallback LLMs
+   - Transparent logging of LLM switching for monitoring
 
 ## License
 
@@ -152,6 +165,7 @@ The system includes several optimizations to improve response time and user expe
 
 ## Acknowledgments
 
-- This project uses the Google Gemini API for AI responses
+- This project uses Groq API with Llama 3.3 70B as the primary LLM
+- Uses Google Gemini API as a fallback LLM
 - Built with LangChain and Gradio
 - Inspired by the need for efficient document analysis tools

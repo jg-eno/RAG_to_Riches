@@ -4,13 +4,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from functools import lru_cache
 import time
+import os
+from google.api_core.exceptions import ResourceExhausted
+from langchain_groq import ChatGroq
 
 from src.config.settings import API_KEY, GEMINI_MODEL
 from src.database.document_store import get_database
 
-# Initialize the LLM with optimized parameters
-def get_llm():
-    """Get a new LLM instance with the next API key."""
+# Initialize the Google Gemini LLM (now used as fallback)
+def get_gemini_llm():
+    """Get a new Google Gemini LLM instance with the next API key."""
     return ChatGoogleGenerativeAI(
         model=GEMINI_MODEL, 
         api_key=API_KEY(),  # Call the function to get the next API key
@@ -18,6 +21,21 @@ def get_llm():
         max_output_tokens=1024,  # Limit output tokens for faster generation
         top_p=0.95,  # Slightly reduce top_p for faster generation
         top_k=40,  # Set top_k for better performance
+    )
+
+# Initialize the Groq LLM as primary
+def get_groq_llm():
+    """Get a Groq LLM instance as the primary LLM."""
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    if not groq_api_key:
+        raise ValueError("GROQ_API_KEY not found in environment variables")
+    
+    return ChatGroq(
+        model="llama-3.3-70b-specdec",
+        api_key=groq_api_key,
+        temperature=0.3,
+        max_tokens=1024,
+        model_kwargs={"top_p": 0.95},  # Pass top_p through model_kwargs instead
     )
 
 # Create a reusable chain with output parser
@@ -53,10 +71,20 @@ Output Format:
 """
 
 @lru_cache(maxsize=5)  # Cache the 5 most recent chain configurations
-def get_chain():
-    """Get the LLM chain with caching."""
+def get_chain(use_fallback=False):
+    """Get the LLM chain with caching.
+    
+    Args:
+        use_fallback: Whether to use the fallback Google Gemini LLM instead of Groq
+    """
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    return prompt_template | get_llm() | output_parser
+    
+    if use_fallback:
+        print("Using Google Gemini LLM as fallback")
+        return prompt_template | get_gemini_llm() | output_parser
+    else:
+        print("Using Groq LLM as primary")
+        return prompt_template | get_groq_llm() | output_parser
 
 # Cache for storing query results to avoid redundant processing
 query_cache = {}
@@ -97,12 +125,30 @@ def query_document(question, doc_path=None):
     results.sort(key=lambda x: x[1], reverse=True)
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     
-    chain = get_chain()
-    
-    generation_start = time.time()
-    response = chain.invoke({'context': context_text, 'question': question})
-    generation_time = time.time() - generation_start
-    print(f"Response generation completed in {generation_time:.2f} seconds")
+    # Try with primary Groq LLM first, fall back to Google Gemini if there's an error
+    try:
+        chain = get_chain(use_fallback=False)
+        generation_start = time.time()
+        response = chain.invoke({'context': context_text, 'question': question})
+        generation_time = time.time() - generation_start
+        print(f"Response generation completed in {generation_time:.2f} seconds")
+    except Exception as e:
+        print(f"Groq API error: {str(e)}")
+        print("Falling back to Google Gemini LLM...")
+        
+        try:
+            # Use Google Gemini as fallback
+            chain = get_chain(use_fallback=True)
+            generation_start = time.time()
+            response = chain.invoke({'context': context_text, 'question': question})
+            generation_time = time.time() - generation_start
+            print(f"Fallback response generation completed in {generation_time:.2f} seconds")
+        except ResourceExhausted as fallback_error:
+            print(f"Google API quota exceeded: {str(fallback_error)}")
+            return "I'm sorry, but I'm currently experiencing technical difficulties with both primary and fallback language models. Please try again later."
+        except Exception as fallback_error:
+            print(f"Fallback LLM also failed: {str(fallback_error)}")
+            return "I'm sorry, but I'm currently experiencing technical difficulties with both primary and fallback language models. Please try again later."
     
     # Cache the result
     query_cache[cache_key] = response

@@ -1,5 +1,4 @@
 """Main entry point for the application."""
-import os
 from src.database.document_store import initialize_database
 from src.ui.app import create_chat_interface
 from src.config.settings import DEFAULT_DOC_PATH
