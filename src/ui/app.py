@@ -187,9 +187,7 @@ def create_chat_interface():
                     examples=[
                         "Analyze the primary findings and conclusions of this document",
                         "Extract and organize the key methodological approaches",
-                        "Tabulate the ratio(%) of agreed winner across expert annotators and significance p-value for binomial test. P-value < 0.05",
-                        "Generate a comparative analysis of the frameworks discussed",
-                        "Synthesize the evidence supporting the main hypothesis"
+                        "Generate a comparative analysis of the frameworks discussed"
                     ],
                     inputs=msg,
                     label="Example Queries"
