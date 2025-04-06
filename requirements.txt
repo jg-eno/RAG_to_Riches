@@ -43,6 +43,7 @@ gradio==5.23.3
 gradio_client==1.8.0
 greenlet==3.1.1
 groovy==0.1.2
+groq==0.22.0
 grpcio==1.71.0
 grpcio-status==1.71.0
 h11==0.14.0
@@ -70,6 +71,7 @@ langchain-chroma==0.2.2
 langchain-community==0.3.20
 langchain-core==0.3.50
 langchain-google-genai==2.1.2
+langchain-groq==0.3.2
 langchain-text-splitters==0.3.7
 langsmith==0.3.24
 markdown-it-py==3.0.0
