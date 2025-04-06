@@ -1,17 +1,17 @@
-"""Main entry point for the Document Q&A application."""
+"""Main entry point for the application."""
+import os
 from src.database.document_store import initialize_database
 from src.ui.app import create_chat_interface
-from src.ui.styles import CUSTOM_CSS
+from src.config.settings import DEFAULT_DOC_PATH
 
 def main():
-    # Initialize the document database
-    print("Initializing document database...")
-    initialize_database()
-
+    """Initialize the database and launch the chat interface."""
+    # Initialize the database with the default document
+    initialize_database(DEFAULT_DOC_PATH)
+    
     # Create and launch the chat interface
     app = create_chat_interface()
-    app.queue()
-    app.launch(css=CUSTOM_CSS)
+    app.launch(debug=True,share=True)
 
 if __name__ == "__main__":
     main()
