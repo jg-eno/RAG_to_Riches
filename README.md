@@ -2,7 +2,7 @@
 
 A professional, futuristic document analysis and Q&A system that allows users to interact with PDF documents through natural language queries. The application features a modern dark-themed UI, optimized retrieval and response generation, and support for custom document uploads.
 
-![InsiderInfo Screenshot](https://via.placeholder.com/800x450.png?text=InsiderInfo+Screenshot)
+![InsiderInfo HomePage](HomePage.png)
 
 ## Key Features
 
@@ -131,6 +131,16 @@ RAG_to_Riches/
         ├── api_load_balancer.py  # API key load balancing
         └── query_handler.py      # Query processing
 ```
+
+## UI Components
+
+The application features a modern, dark-themed interface:
+
+### Query Interface
+![Query Interface](Query.png)
+
+### Tabular Response
+![Tabular Response](Query_2.png)
 
 ## Performance Optimizations
 
